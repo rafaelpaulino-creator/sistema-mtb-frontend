@@ -98,6 +98,15 @@
     </div>
 
     <script>
+        
+        const SENHA_CORRETA = "mtb2026bike"; // Escolha a sua senha aqui!
+
+    let senhaDigitada = prompt("Digite a senha de acesso para o Sistema MTB:");
+
+    if (senhaDigitada !== SENHA_CORRETA) {
+        alert("Acesso negado! Você não tem autorização.");
+        window.location.href = "https://www.google.com"; // Chuta o usuário para fora do site
+    }
         const API_URL = "https://sistema-mtb-backend.onrender.com/api/duplas";
 
         // MÁGICA 1: ENVIAR DADOS PARA O JAVA
