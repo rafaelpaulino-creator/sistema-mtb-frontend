@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscrições MTB 2026</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f6fa;
+            color: #2f3542;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 450px;
+            margin-bottom: 20px;
+        }
+        h2 { margin-top: 0; color: #2f3542; border-bottom: 2px solid #f5f6fa; padding-bottom: 10px; }
+        label { display: block; margin: 12px 0 5px; font-weight: 600; font-size: 14px; }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            background-color: #2ecc71; /* Nosso Verde Flat */
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: #27ae60; }
+        .btn-atualizar { background-color: #4a697c; margin-top: 10px; }
+        .btn-atualizar:hover { background-color: #3b5566; }
+        .lista {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 450px;
+            border: 1px solid #ced4da;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>📝 Inscrição de Dupla</h2>
+        <form id="formInscricao">
+            <label>Nome do Atleta 1:</label>
+            <input type="text" id="atleta1" required>
+
+            <label>Idade do Atleta 1:</label>
+            <input type="number" id="idade1" required>
+
+            <label>Nome do Atleta 2:</label>
+            <input type="text" id="atleta2" required>
+
+            <label>Idade do Atleta 2:</label>
+            <input type="number" id="idade2" required>
+
+            <label>Tipo da Dupla:</label>
+            <select id="tipo">
+                <option value="Mista">Mista</option>
+                <option value="Masculina">Masculina</option>
+            </select>
+
+            <button type="submit">Confirmar Inscrição</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <h2>📋 Inscritos no Servidor</h2>
+        <div class="lista" id="campoLista">Nenhuma dupla carregada ainda.</div>
+        <button class="btn-atualizar" onclick="buscarInscritos()">🔄 Atualizar Lista</button>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:8080/duplas";
+
+        // MÁGICA 1: ENVIAR DADOS PARA O JAVA
+        document.getElementById("formInscricao").addEventListener("submit", function(event) {
+            event.preventDefault(); // Impede a página de recarregar
+
+            // Monta o pacotinho de dados igualzinho a classe do Java espera
+            const dadosDupla = {
+                atleta1: document.getElementById("atleta1").value,
+                idade1: parseInt(document.getElementById("idade1").value) || 0, // <-- Adicionado || 0
+                atleta2: document.getElementById("atleta2").value,
+                idade2: parseInt(document.getElementById("idade2").value) || 0, // <-- Adicionado || 0
+                tipo: document.getElementById("tipo").value
+            };
+
+            // Dispara para o servidor Java rodando por trás
+            fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dadosDupla)
+            })
+            .then(resposta => resposta.text())
+            .then(mensagem => {
+                alert(mensagem); // Mostra a resposta do Java na tela!
+                document.getElementById("formInscricao").reset(); // Limpa o formulário
+                buscarInscritos(); // Atualiza a lista automaticamente
+            })
+            .catch(erro => alert("Erro ao conectar com o servidor Java: " + erro));
+        });
+
+        // MÁGICA 2: BUSCAR DADOS DO JAVA
+        function buscarInscritos() {
+            fetch(API_URL)
+            .then(resposta => resposta.json()) // <-- Corrigido aqui!
+            .then(duplas => {
+                const campo = document.getElementById("campoLista");
+                if (duplas.length === 0) {
+                    campo.innerText = "Nenhuma dupla cadastrada até o momento.";
+                    return;
+                }
+
+                // Limpa o campo e renderiza os dados formatados
+                campo.innerText = "";
+                duplas.forEach(d => {
+                    campo.innerText += `ID: ${String(d.id).padStart(2, '0')} | ${d.categoria}\n👤 Atleta 1: ${d.atleta1} (${d.idade1} anos)\n👤 Atleta 2: ${d.atleta2} (${d.idade2} anos)\n----------------------------------------\n`;
+                });
+            })
+            .catch(erro => alert("Erro ao buscar dados: " + erro));
+        }
+    </script>
+</body>
+</html>
